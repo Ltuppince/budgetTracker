@@ -6,23 +6,25 @@ const FILES_TO_CACHE = [
     "/db.js",
     "/manifest.webmanifest",
     "/icons/icon-192x192.png",
-    "/icons/icon-512x512.png"
+    "/icons/icon-512x512.png",
+    "/db.js"
 ];
 
-const CACHE_NAME = "static-cache-v2";
-const DATA_CACHE_NAME = "data-cache-v1";
 
-// const STATIC_CACHE = "static-cache-v1";
-// const RUNTIME_CACHE = "runtime-cache";
+const STATIC_CACHE = "static-cache-v1";
+const RUNTIME_CACHE = "runtime-cache";
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then(cache => cache.addAll(FILES_TO_CACHE))
-      .then(() => self.skipWaiting())
-  );
+    event.waitUntil(
+      caches.open(STATIC_CACHE).then(cache => {
+        console.log("Your files were pre-cached successfully!");
+        return cache.addAll(FILES_TO_CACHE);
+      })
+    );
+  
+    self.skipWaiting();
 });
+  
 
 // The activate handler takes care of cleaning up old caches.
 self.addEventListener("activate", event => {
@@ -73,21 +75,11 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // use cache first for all other requests for performance
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // request is not in cache. make network request and cache the response
-      return caches.open(RUNTIME_CACHE).then(cache => {
-        return fetch(event.request).then(response => {
-          return cache.put(event.request, response.clone()).then(() => {
-            return response;
-          });
-        });
-      });
+   event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+    return cache.match(event.request).then(response => {
+        return response || fetch(event.request);
+    });
     })
   );
 });
