@@ -60,7 +60,7 @@ self.addEventListener("fetch", event => {
   }
 
   // handle runtime GET requests for data from /api routes
-  if (event.request.url.includes("/api/images")) {
+  if (event.request.url.includes("/api/")) {
     // make network request and fallback to cache if network request fails (offline)
     event.respondWith(
       caches.open(RUNTIME_CACHE).then(cache => {
@@ -76,7 +76,7 @@ self.addEventListener("fetch", event => {
   }
 
    event.respondWith(
-    caches.open(CACHE_NAME).then(cache => {
+    caches.open(STATIC_CACHE).then(cache => {
     return cache.match(event.request).then(response => {
         return response || fetch(event.request);
     });
